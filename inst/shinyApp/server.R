@@ -10,6 +10,10 @@
 # Define server logic required to draw a histogram
 server <- shinyServer(function(input, output) {
 
-  callModule(load_data_Server, "load_data")
+  # outputOptions(output, "foo", suspendWhenHidden=FALSE)
+
+  file_data <- callModule(load_data_Server, "load_data")
+
+  callModule(view_data_Server, "view_data", file_data = file_data)
 
 })

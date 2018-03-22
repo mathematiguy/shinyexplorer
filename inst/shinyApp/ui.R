@@ -21,6 +21,10 @@ ui <- shinyUI(navbarPage(
     load_data_UI("load_data")
   ),
   tabPanel(
+    "View Data",
+    view_data_UI("view_data")
+  ),
+  tabPanel(
     "Settings"
   )
 

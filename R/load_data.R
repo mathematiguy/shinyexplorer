@@ -176,7 +176,22 @@ load_data_sidebar_server <- function (input, output, session) {
 
   })
 
-  return(reactive({input$files_loaded}))
+  format_filesize <- function(x) {
+    #' converts the file size to a human readable character vector
+    #' e.g. 1024 -> 1KB
+    utils:::format.object_size(x, "auto")
+  }
+
+  res <- reactive({
+    req(input$files_loaded)
+
+    input$files_loaded %>%
+      mutate(filetype = str_extract(name, "[^\\.]+$"),
+             size = map_chr(size, format_filesize))
+
+    })
+
+  return(res)
 
 }
 
@@ -195,9 +210,11 @@ load_data_UI <- function (id) {
     mainPanel(
       tabPanel(
         "Welcome",
-        includeMarkdown("markdown/frontpage.md")),
+        includeMarkdown("markdown/frontpage.md"),
         dataTableOutput(
-          ns("file_loaded"))
+          ns("file_loaded")),
+        verbatimTextOutput(ns("file_data_print"))
+      )
     )
 
   )
@@ -207,35 +224,37 @@ load_data_UI <- function (id) {
 
 load_data_Server <- function (input, output, session) {
 
-  file_data <- callModule(load_data_sidebar_server, "sidebar_panel")
+  load_data <- callModule(load_data_sidebar_server, "sidebar_panel")
 
-  make_buttons <- function(n) {
+  # file_data <- reactive({
+  #
+  #   req(load_data())
+  #
+  #
+  #
+  # })
+
+  make_buttons <- function(n, id, type, text) {
     #' returns a character vector describing n buttons to be
     #' inserted into a dataTableOutput
     sprintf(
-      '<div
-          class="btn-group"
-          role="group"
-          aria-label="Basic example">
-       <button
+      '<button
           type="button"
-          class="btn btn-secondary delete"
-          id="delete_%d">
-       Delete
-       </button>
-       </div>', 1:n)
+          class="btn btn-%s"
+          id="%s_%d">
+       %s
+       </button>', type, id, 1:n, text)
   }
+
+  output$file_data_print <- renderPrint(load_data())
 
   output$file_loaded <- renderDataTable({
 
-    req(file_data())
+    req(load_data)
 
-    data <- file_data() %>%
-      select(name, size) %>%
-      mutate(filetype = str_extract(name, "[^\\.]+$"),
-             size = map_chr(size,
-               function (x) utils:::format.object_size(x, "auto")),
-             actions = make_buttons(nrow(.))) %>%
+    data <- load_data() %>%
+      mutate(actions = make_buttons(nrow(.),
+               'delete', 'danger', "Delete")) %>%
       select(actions, name, filetype, size) %>%
       DT::datatable(
         style = "bootstrap",
@@ -250,4 +269,6 @@ load_data_Server <- function (input, output, session) {
           scroller = TRUE
         ))
     })
+
+  return(load_data)
 }
