@@ -37,6 +37,6 @@ rsconnect/
 .Rproj.user
 
 # remove datasets
-inst/extdata/
+inst/extdata/*
 inst/shiny_module-master/
 inst/testApp/
