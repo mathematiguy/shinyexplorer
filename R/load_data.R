@@ -182,16 +182,18 @@ load_data_sidebar_server <- function (input, output, session) {
     utils:::format.object_size(x, "auto")
   }
 
-  res <- reactive({
+  file_data <- reactive({
+
     req(input$files_loaded)
 
     input$files_loaded %>%
       mutate(filetype = str_extract(name, "[^\\.]+$"),
-             size = map_chr(size, format_filesize))
+             size = map_chr(size, format_filesize),
+             data = map(datapath, read_csv))
 
     })
 
-  return(res)
+  return(file_data)
 
 }
 
@@ -224,15 +226,9 @@ load_data_UI <- function (id) {
 
 load_data_Server <- function (input, output, session) {
 
-  load_data <- callModule(load_data_sidebar_server, "sidebar_panel")
-
-  # file_data <- reactive({
-  #
-  #   req(load_data())
-  #
-  #
-  #
-  # })
+  file_data <- callModule(
+    load_data_sidebar_server,
+    "sidebar_panel")
 
   make_buttons <- function(n, id, type, text) {
     #' returns a character vector describing n buttons to be
@@ -246,29 +242,22 @@ load_data_Server <- function (input, output, session) {
        </button>', type, id, 1:n, text)
   }
 
-  output$file_data_print <- renderPrint(load_data())
+  output$file_data_print <- renderPrint(
+    file_data() %>%
+      select(-data)
+    )
 
   output$file_loaded <- renderDataTable({
 
-    req(load_data)
+    req(file_data)
 
-    data <- load_data() %>%
-      mutate(actions = make_buttons(nrow(.),
-               'delete', 'danger', "Delete")) %>%
-      select(actions, name, filetype, size) %>%
-      DT::datatable(
-        style = "bootstrap",
-        escape = F,
-        rownames = FALSE,
-        options = list(
-          dom = 't',
-          pageLength = 10,
-          searching = FALSE,
-          scrollX = TRUE,
-          deferRender = TRUE,
-          scroller = TRUE
-        ))
+    data <- file_data() %>%
+      # mutate(actions = make_buttons(nrow(.),
+      #          'delete', 'danger', "Delete")) %>%
+      select(name, filetype, size) %>%
+      dataTableThemed()
     })
 
-  return(load_data)
+  return(file_data)
+
 }

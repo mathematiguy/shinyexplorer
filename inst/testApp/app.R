@@ -1,98 +1,33 @@
 library(shiny)
-library(shinythemes)
+library(data.table)
 
-
-load_data_sidebar <- function (id) {
-
-  # Set namespace
-  ns <- NS(id)
-
-  # List of accepted file types for upload
-  type_choices <- c(".csv", ".xls*")
-
-  sidebarPanel(
-
-    # Select filetype
-    selectInput(
-      ns("select_filetype"),
-      label = "Select file type",
-      choices = type_choices
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("slider1", "Slider 1",min = 0.1, max = 1, value = 0.4, step = 0.05),
+      sliderInput("slider2", "Slider 2",min = 0.1, max = 1, value = 0.4, step = 0.05),
+      sliderInput("slider3", "Slider 3",min = 100, max = 20000, value = 5000, step= 200)
     ),
+    mainPanel(
+      tableOutput("tableOut")
 
-    # Upload files
-    uiOutput(ns("file_input_ui")),
-
-    textOutput(ns("selected_filetype"))
-
-  )
-
-}
-
-load_data_sidebar_server <- function (input, output, session) {
-
-  ns <- session$ns
-
-  output$file_input_ui <- renderUI({
-
-    ns <- session$ns
-
-    fileInput(
-      ns("file_input"),
-      label = "Upload files 2",
-      multiple = TRUE
     )
 
+  ))
+
+server <- function(input, output, session){
+
+  #initalization - can this be put somewhere else?
+  ret <- data.table(slider_names= c("slider1","slider2", "slider3"),
+                    some_grouping_information=c("A", "A", "B") )
+
+
+  rv_dtWeights <- reactive({
+    ret[,original_values :=c(input$slider1,input$slider2,input$slider3)]
+    ret[,working_values:=sum(original_values), by=some_grouping_information]
   })
 
-  output$selected_filetype <- renderText({
-    "Here is some text"
-  })
+  output$tableOut<- renderTable(rv_dtWeights())
 
 }
-
-
-load_data_UI <- function (id) {
-
-  # Set namespace
-  ns <- NS(id)
-
-  sidebarLayout(
-
-    # Sidebar UI for load data page
-    load_data_sidebar(ns("sidebar_panel")),
-
-    # Main panel of load data page
-    mainPanel("Here is some content")
-
-  )
-
-}
-
-
-load_data_Server <- function (input, output, session) {
-
-  # Get namespace
-  ns <- session$ns
-
-  callModule(load_data_sidebar_server, "sidebar_panel")
-
-}
-
-
-ui <- shinyUI(navbarPage(
-
-  title = "Module test",
-
-  tabPanel("Load data", load_data_UI("load_data"))
-
-))
-
-
-server <- function (input, output, session) {
-
-  callModule(load_data_Server, "load_data")
-
-}
-
-
-shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server=server)

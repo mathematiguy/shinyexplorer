@@ -8,24 +8,27 @@
 #
 
 # Define UI for application
-ui <- shinyUI(navbarPage(
+ui <- shinyUI(
 
-  title = "Shiny Explorer",
-  theme = shinytheme("cosmo"),
-  fluid = TRUE,
-  collapsible = TRUE,
-
-  tabPanel(
+  tagList(
     shinyjs::useShinyjs(),
-    title = "Load data",
-    load_data_UI("load_data")
-  ),
-  tabPanel(
-    "View Data",
-    view_data_UI("view_data")
-  ),
-  tabPanel(
-    "Settings"
-  )
 
+    navbarPage(
+      title = "Shiny Explorer",
+      theme = shinytheme("cosmo"),
+      fluid = TRUE,
+      collapsible = TRUE,
+
+      tabPanel(
+        title = "Load data",
+        load_data_UI("load_data")
+      ),
+      tabPanel(
+        "View Data",
+        view_data_UI("view_data")
+      ),
+      tabPanel(
+        "Settings"
+      )
+  )
 ))
