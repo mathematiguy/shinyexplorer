@@ -187,7 +187,8 @@ load_data_sidebar_server <- function (input, output, session) {
 
     input$files_loaded %>%
       mutate(filetype = str_extract(name, "[^\\.]+$"),
-             size = map_chr(size, format_filesize))
+             size = map_chr(size, format_filesize),
+             data = map(datapath, read_csv))
 
     })
 

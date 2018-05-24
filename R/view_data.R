@@ -11,6 +11,11 @@ view_data_Server <- function (input, output, session, file_data) {
 
   output$view_table <- DT::renderDataTable({
 
+    print(file_data())
+
+    (file_data() %>%
+      filter(name == input$select_table) %>%
+      .$data)[[1]]
   })
 
 }
@@ -30,7 +35,7 @@ view_data_UI <- function (id) {
 
     # Main panel of load data page
     mainPanel(
-      # DT::dataTableOutput("")
+      DT::dataTableOutput(ns("view_table"))
       )
 
   )
