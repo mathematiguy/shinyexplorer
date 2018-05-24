@@ -1,3 +1,4 @@
+# clear the environment
 library(dplyr)
 library(purrr)
 library(stringr)
@@ -13,7 +14,7 @@ library(shinyexplorer)
 # Set file upload size limit: 100 MB
 options(shiny.maxRequestSize = 1024 * 1024 ^ 2)
 
-ui     <- source("ui.R",     local = TRUE)
-server <- source("server.R", local = TRUE)
+source("ui.R",     local = TRUE)
+source("server.R", local = TRUE)
 
 shinyApp(ui = ui, server = server)
